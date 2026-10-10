@@ -7,287 +7,255 @@
   <meta name="description" content="Early preview: track trusted trader obligations and ISPM 15 wood packaging checks.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #070707;
-      --panel: #111111;
-      --panel-2: #181818;
-      --fg: #f5f5f5;
-      --muted: #8f8f8f;
-      --line: rgba(255, 255, 255, 0.12);
-      --bad: #ff6b6b;
-      --warn: #f2c94c;
-      --ok: #d4d4d4;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --fg: #1a2233;
+      --muted: #5f6b7a;
+      --line: #e3e6eb;
+      --brand: #1f3a5f;
+      --brand-soft: #eef2f7;
+      --bad: #b42318;
+      --bad-bg: #fef3f2;
+      --warn: #a15c07;
+      --warn-bg: #fffaeb;
+      --ok: #067647;
+      --ok-bg: #ecfdf3;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: "Inter", system-ui, -apple-system, sans-serif;
       background: var(--bg);
       color: var(--fg);
-      font-size: 15px;
+      font-size: 14px;
       line-height: 1.5;
       min-height: 100vh;
     }
     a { color: inherit; }
     button, input, select, textarea { font: inherit; color: inherit; }
-    .shell { max-width: 1040px; margin: 0 auto; padding: 24px 16px 64px; }
 
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 28px;
+    .topbar { background: var(--panel); border-bottom: 1px solid var(--line); }
+    .topbar .in {
+      max-width: 1120px; margin: 0 auto; padding: 14px 20px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
     }
-    .brand { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; text-decoration: none; }
-    .brand b { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em; }
-    .brand span { color: var(--muted); font-size: 0.9rem; font-weight: 500; }
-    .pill {
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 4px 12px;
+    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo {
+      width: 38px; height: 32px; border-radius: 6px; background: var(--brand); color: #fff;
+      display: grid; place-items: center; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.02em;
     }
+    .brand b { font-size: 1rem; font-weight: 700; }
+    .brand small { display: block; color: var(--muted); font-size: 0.75rem; line-height: 1.2; }
+    .pill { font-size: 0.75rem; font-weight: 500; color: var(--brand); background: var(--brand-soft); border-radius: 999px; padding: 3px 10px; }
 
-    .intro { color: var(--muted); max-width: 680px; margin-bottom: 24px; }
-    .intro strong { color: var(--fg); font-weight: 600; }
+    .shell { max-width: 1120px; margin: 0 auto; padding: 28px 20px 64px; }
+    .head { margin-bottom: 22px; }
+    .head h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; }
+    .head p { color: var(--muted); max-width: 720px; }
 
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      margin-bottom: 28px;
-    }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 26px; }
     .stat {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 14px 16px;
-      cursor: pointer;
-      text-align: left;
+      background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+      padding: 14px 16px; cursor: pointer; text-align: left;
     }
-    .stat:hover { border-color: rgba(255, 255, 255, 0.3); }
-    .stat .n { font-size: 1.9rem; font-weight: 800; line-height: 1.1; }
-    .stat .l { color: var(--muted); font-size: 0.85rem; }
+    .stat:hover { border-color: #c5ccd6; }
+    .stat .l { color: var(--muted); font-size: 0.8rem; font-weight: 500; }
+    .stat .n { font-size: 1.6rem; font-weight: 700; margin-top: 2px; }
     .stat.bad .n { color: var(--bad); }
     .stat.warn .n { color: var(--warn); }
 
-    .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 18px; }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+    .tabs { display: flex; gap: 2px; padding: 0 16px; border-bottom: 1px solid var(--line); }
     .tab {
-      background: none;
-      border: none;
-      padding: 10px 14px;
-      color: var(--muted);
-      font-weight: 600;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
+      background: none; border: none; padding: 12px 10px; margin-right: 10px; color: var(--muted);
+      font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
     }
-    .tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--fg); }
+    .tab[aria-selected="true"] { color: var(--brand); border-bottom-color: var(--brand); font-weight: 600; }
 
-    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 14px 16px; }
     .toolbar .spacer { flex: 1; }
     .btn {
-      background: var(--panel-2);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 7px 12px;
-      cursor: pointer;
-      font-weight: 500;
-      font-size: 0.9rem;
+      background: var(--panel); border: 1px solid #cfd5dd; border-radius: 6px;
+      padding: 7px 12px; cursor: pointer; font-weight: 500; font-size: 0.85rem;
     }
-    .btn:hover { border-color: rgba(255, 255, 255, 0.35); }
-    .btn.primary { background: var(--fg); color: #000; border-color: var(--fg); font-weight: 600; }
-    .btn.ghost { background: none; }
-    .btn.small { padding: 4px 9px; font-size: 0.82rem; }
+    .btn:hover { background: #f3f5f8; }
+    .btn.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .btn.primary:hover { background: #18304f; }
+    .btn.link { border: none; background: none; color: var(--brand); padding: 4px 6px; }
+    .btn.link:hover { text-decoration: underline; background: none; }
+    .btn.link.danger { color: var(--muted); }
     select, input[type="text"], input[type="date"], textarea {
-      background: var(--panel-2);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 7px 10px;
+      background: var(--panel); border: 1px solid #cfd5dd; border-radius: 6px; padding: 7px 10px;
     }
-    input[type="date"] { color-scheme: dark; }
+    select:focus, input:focus, textarea:focus { outline: 2px solid #b8c6da; outline-offset: 0; border-color: var(--brand); }
 
-    .list { display: grid; gap: 8px; }
-    .item {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 6px 16px;
-      align-items: center;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-left: 3px solid var(--line);
-      border-radius: 10px;
-      padding: 12px 14px;
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase;
+      letter-spacing: 0.04em; padding: 10px 16px; background: #fafbfc;
+      border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
     }
-    .item.overdue { border-left-color: var(--bad); }
-    .item.soon { border-left-color: var(--warn); }
-    .item.done { opacity: 0.55; }
-    .item h3 { font-size: 0.98rem; font-weight: 600; }
-    .meta { display: flex; flex-wrap: wrap; gap: 6px 12px; color: var(--muted); font-size: 0.84rem; }
-    .tag {
-      font-size: 0.74rem;
-      font-weight: 600;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 1px 7px;
-      color: var(--fg);
-    }
-    .due.overdue { color: var(--bad); font-weight: 600; }
-    .due.soon { color: var(--warn); font-weight: 600; }
-    .actions { display: flex; gap: 6px; }
-    .empty { color: var(--muted); padding: 32px; text-align: center; border: 1px dashed var(--line); border-radius: 10px; }
+    td { padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr.done td { color: var(--muted); }
+    td .title { font-weight: 600; }
+    td .notes { color: var(--muted); font-size: 0.82rem; margin-top: 2px; }
+    td.actions, td.date { white-space: nowrap; }
+    td.actions { text-align: right; }
+    .sub { color: var(--muted); font-size: 0.82rem; }
+    .badge { display: inline-block; font-size: 0.75rem; font-weight: 500; border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
+    .badge.overdue { color: var(--bad); background: var(--bad-bg); }
+    .badge.soon { color: var(--warn); background: var(--warn-bg); }
+    .badge.ok { color: var(--ok); background: var(--ok-bg); }
+    .badge.done { color: var(--muted); background: #f0f2f5; }
+    .prog { font-size: 0.78rem; font-weight: 600; color: var(--brand); }
+    .empty { color: var(--muted); padding: 36px; text-align: center; }
 
-    .grid2 { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; align-items: start; }
-    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
-    .card h2 { font-size: 1.05rem; margin-bottom: 4px; }
-    .card .sub { color: var(--muted); font-size: 0.86rem; margin-bottom: 14px; }
+    .grid2 { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 0; }
+    .grid2 > * { padding: 20px; }
+    .grid2 > * + * { border-left: 1px solid var(--line); }
+    h2 { font-size: 1rem; font-weight: 600; margin-bottom: 2px; }
     .field { display: grid; gap: 4px; margin-bottom: 12px; }
-    .field > span { font-size: 0.82rem; color: var(--muted); font-weight: 500; }
-    .checks { display: grid; gap: 8px; margin-bottom: 14px; }
+    .field > span { font-size: 0.8rem; font-weight: 500; }
+    .checks { display: grid; gap: 10px; margin: 16px 0; }
     .checks label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
-    .checks input { margin-top: 4px; accent-color: #fff; }
+    .checks input { margin-top: 3px; accent-color: var(--brand); width: 15px; height: 15px; }
     .checks small { display: block; color: var(--muted); }
-    .result { margin-top: 12px; padding: 12px; border-radius: 8px; border: 1px solid var(--line); display: none; }
-    .result.pass { display: block; border-color: rgba(255, 255, 255, 0.4); }
-    .result.fail { display: block; border-color: var(--bad); }
-    .result b { display: block; margin-bottom: 4px; }
-    .result.fail b { color: var(--bad); }
-    .result ul { padding-left: 18px; color: var(--muted); font-size: 0.88rem; }
-    .log .row {
-      display: flex; justify-content: space-between; gap: 10px;
-      padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 0.88rem;
-    }
+    .result { margin-top: 14px; padding: 12px 14px; border-radius: 6px; display: none; }
+    .result.pass { display: block; background: var(--ok-bg); color: var(--ok); }
+    .result.fail { display: block; background: var(--bad-bg); color: var(--bad); }
+    .result b { display: block; margin-bottom: 2px; }
+    .result ul { padding-left: 18px; }
+    .log .row { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
     .log .row:last-child { border-bottom: none; }
-    .log .fail { color: var(--bad); font-weight: 600; }
-    .log .pass { font-weight: 600; }
 
     dialog {
-      background: var(--panel);
-      color: var(--fg);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 20px;
-      width: min(480px, calc(100vw - 32px));
-      margin: auto;
+      background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 10px;
+      padding: 22px; width: min(480px, calc(100vw - 32px)); margin: auto;
+      box-shadow: 0 20px 50px rgba(16, 24, 40, 0.18);
     }
-    dialog::backdrop { background: rgba(0, 0, 0, 0.7); }
-    dialog h2 { font-size: 1.1rem; margin-bottom: 14px; }
+    dialog::backdrop { background: rgba(16, 24, 40, 0.4); }
+    dialog h2 { font-size: 1.05rem; margin-bottom: 16px; }
     dialog .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     dialog .foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
 
-    footer.note { margin-top: 40px; color: var(--muted); font-size: 0.8rem; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    footer.note { margin-top: 18px; color: var(--muted); font-size: 0.8rem; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
     footer.note .spacer { flex: 1; }
 
     @media (max-width: 760px) {
       .stats { grid-template-columns: repeat(2, 1fr); }
       .grid2 { grid-template-columns: 1fr; }
-      .item { grid-template-columns: 1fr; }
-      .actions { justify-content: flex-start; }
+      .grid2 > * + * { border-left: none; border-top: 1px solid var(--line); }
+      thead { display: none; }
+      tr { display: block; border-bottom: 1px solid var(--line); padding: 8px 0; }
+      td { display: block; border: none; padding: 4px 16px; }
+      td.actions { text-align: left; }
     }
   </style>
 </head>
 <body>
-  <div class="shell">
-    <header>
-      <a class="brand" href="../"><b>AQM Online</b><span>Ai Quality Management</span></a>
+  <div class="topbar">
+    <div class="in">
+      <a class="brand" href="../">
+        <span class="logo">AQM</span>
+        <span><b>AQM Online</b><small>Ai Quality Management</small></span>
+      </a>
       <span class="pill">Early preview</span>
-    </header>
+    </div>
+  </div>
 
-    <p class="intro">
-      Most trusted trader suspensions come from <strong>missed basics</strong>, not security incidents:
-      late validation responses, stale security profiles, missing ISPM 15 marks.
-      This preview keeps those basics in front of you.
-    </p>
+  <div class="shell">
+    <div class="head">
+      <h1>Compliance overview</h1>
+      <p>Most trusted trader suspensions come from missed basics, such as late validation responses, outdated security profiles and missing ISPM 15 marks. Track them here.</p>
+    </div>
 
     <section class="stats" aria-label="Summary">
-      <button class="stat bad" data-jump="overdue"><div class="n" id="s-overdue">0</div><div class="l">Overdue</div></button>
-      <button class="stat warn" data-jump="soon"><div class="n" id="s-soon">0</div><div class="l">Due in 30 days</div></button>
-      <button class="stat" data-jump="open"><div class="n" id="s-open">0</div><div class="l">Open obligations</div></button>
-      <button class="stat" data-jump="ispm"><div class="n" id="s-ispm">—</div><div class="l">ISPM 15 pass rate</div></button>
+      <button class="stat bad" data-jump="overdue"><div class="l">Overdue</div><div class="n" id="s-overdue">0</div></button>
+      <button class="stat warn" data-jump="soon"><div class="l">Due in 30 days</div><div class="n" id="s-soon">0</div></button>
+      <button class="stat" data-jump="open"><div class="l">Open obligations</div><div class="n" id="s-open">0</div></button>
+      <button class="stat" data-jump="ispm"><div class="l">ISPM 15 pass rate</div><div class="n" id="s-ispm">—</div></button>
     </section>
 
-    <nav class="tabs" role="tablist">
-      <button class="tab" role="tab" data-tab="obligations" aria-selected="true">Obligations</button>
-      <button class="tab" role="tab" data-tab="ispm" aria-selected="false">ISPM 15 check</button>
-    </nav>
+    <div class="panel">
+      <nav class="tabs" role="tablist">
+        <button class="tab" role="tab" data-tab="obligations" aria-selected="true">Obligations</button>
+        <button class="tab" role="tab" data-tab="ispm" aria-selected="false">ISPM 15 check</button>
+      </nav>
 
-    <section id="tab-obligations">
-      <div class="toolbar">
-        <select id="f-status" aria-label="Filter by status">
-          <option value="open">Open</option>
-          <option value="overdue">Overdue</option>
-          <option value="soon">Due in 30 days</option>
-          <option value="done">Done</option>
-          <option value="all">All</option>
-        </select>
-        <select id="f-program" aria-label="Filter by program"></select>
-        <span class="spacer"></span>
-        <button class="btn primary" id="add">+ Add obligation</button>
-      </div>
-      <div class="list" id="list"></div>
-    </section>
-
-    <section id="tab-ispm" hidden>
-      <div class="grid2">
-        <form class="card" id="ispm-form">
-          <h2>Wood packaging check</h2>
-          <p class="sub">Check each pallet, crate or dunnage before it ships.</p>
-          <div class="field">
-            <span>Shipment / PO reference</span>
-            <input type="text" id="i-ref" placeholder="e.g. PO-24581" required>
-          </div>
-          <div class="field">
-            <span>Packaging type</span>
-            <select id="i-type">
-              <option>Pallet</option>
-              <option>Crate</option>
-              <option>Dunnage</option>
-              <option>Skid</option>
-              <option>Other wood packaging</option>
-            </select>
-          </div>
-          <div class="checks">
-            <label><input type="checkbox" data-need="IPPC symbol"><span>IPPC symbol present<small>The wheat-ear logo</small></span></label>
-            <label><input type="checkbox" data-need="Country code"><span>Country code<small>Two-letter ISO code, e.g. CN, LK, VN</small></span></label>
-            <label><input type="checkbox" data-need="Producer / treatment provider number"><span>Producer or treatment provider number</span></label>
-            <label><input type="checkbox" data-need="Treatment code"><span>Treatment code<small>e.g. HT (heat treated) or MB (methyl bromide)</small></span></label>
-            <label><input type="checkbox" data-need="Mark legible and permanent"><span>Mark is legible and permanent<small>Stamped or burned in, not handwritten, visible on two opposite sides</small></span></label>
-            <label><input type="checkbox" data-need="Debarked, no signs of pests"><span>Debarked, no signs of live pests</span></label>
-          </div>
-          <div class="toolbar">
-            <button class="btn primary" type="submit">Record check</button>
-            <button class="btn ghost" type="reset">Clear</button>
-          </div>
-          <div class="result" id="i-result" role="status"></div>
-        </form>
-        <div class="card log">
-          <h2>Recent checks</h2>
-          <p class="sub" id="log-sub">No checks recorded yet.</p>
-          <div id="log"></div>
+      <section id="tab-obligations">
+        <div class="toolbar">
+          <select id="f-status" aria-label="Filter by status">
+            <option value="open">Open</option>
+            <option value="overdue">Overdue</option>
+            <option value="soon">Due in 30 days</option>
+            <option value="done">Completed</option>
+            <option value="all">All</option>
+          </select>
+          <select id="f-program" aria-label="Filter by program"></select>
+          <span class="spacer"></span>
+          <button class="btn primary" id="add">Add obligation</button>
         </div>
-      </div>
-    </section>
+        <div id="list"></div>
+      </section>
+
+      <section id="tab-ispm" hidden>
+        <div class="grid2">
+          <form id="ispm-form">
+            <h2>Wood packaging check</h2>
+            <p class="sub" style="margin-bottom:16px">Check each pallet, crate or dunnage before it ships.</p>
+            <div class="field">
+              <span>Shipment / PO reference</span>
+              <input type="text" id="i-ref" placeholder="e.g. PO-24581" required>
+            </div>
+            <div class="field">
+              <span>Packaging type</span>
+              <select id="i-type">
+                <option>Pallet</option>
+                <option>Crate</option>
+                <option>Dunnage</option>
+                <option>Skid</option>
+                <option>Other wood packaging</option>
+              </select>
+            </div>
+            <div class="checks">
+              <label><input type="checkbox" data-need="IPPC symbol"><span>IPPC symbol present<small>The wheat-ear logo</small></span></label>
+              <label><input type="checkbox" data-need="Country code"><span>Country code<small>Two-letter ISO code, e.g. CN, LK, VN</small></span></label>
+              <label><input type="checkbox" data-need="Producer / treatment provider number"><span>Producer or treatment provider number</span></label>
+              <label><input type="checkbox" data-need="Treatment code"><span>Treatment code<small>e.g. HT (heat treated) or MB (methyl bromide)</small></span></label>
+              <label><input type="checkbox" data-need="Mark legible and permanent"><span>Mark is legible and permanent<small>Stamped or burned in, not handwritten, visible on two opposite sides</small></span></label>
+              <label><input type="checkbox" data-need="Debarked, no signs of pests"><span>Debarked, no signs of live pests</span></label>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn primary" type="submit">Record check</button>
+              <button class="btn" type="reset">Clear</button>
+            </div>
+            <div class="result" id="i-result" role="status"></div>
+          </form>
+          <div class="log">
+            <h2>Recent checks</h2>
+            <p class="sub" id="log-sub">No checks recorded yet.</p>
+            <div id="log"></div>
+          </div>
+        </div>
+      </section>
+    </div>
 
     <footer class="note">
-      <span>Preview only: data is stored in this browser and nothing is sent anywhere.</span>
+      <span>Preview only. Data is stored in this browser and is not sent anywhere.</span>
       <span class="spacer"></span>
-      <button class="btn small ghost" id="export">Export</button>
-      <label class="btn small ghost">Import<input type="file" id="import" accept="application/json" hidden></label>
-      <button class="btn small ghost" id="reset">Reset sample data</button>
+      <button class="btn link" id="export">Export</button>
+      <label class="btn link">Import<input type="file" id="import" accept="application/json" hidden></label>
+      <button class="btn link" id="reset">Reset sample data</button>
     </footer>
   </div>
 
   <dialog id="dlg">
     <form method="dialog" id="dlg-form">
       <h2 id="dlg-title">Add obligation</h2>
-      <div class="field"><span>What needs to happen</span><input type="text" id="d-title" required></div>
+      <div class="field"><span>Task</span><input type="text" id="d-title" required></div>
       <div class="row2">
         <div class="field"><span>Program</span><input type="text" id="d-program" list="programs" required></div>
         <div class="field"><span>Owner</span><input type="text" id="d-owner"></div>
@@ -306,7 +274,7 @@
       </div>
       <div class="field"><span>Notes</span><textarea id="d-notes" rows="2"></textarea></div>
       <div class="foot">
-        <button class="btn ghost" value="cancel" formnovalidate>Cancel</button>
+        <button class="btn" value="cancel" formnovalidate>Cancel</button>
         <button class="btn primary" value="save">Save</button>
       </div>
     </form>
@@ -320,6 +288,7 @@
     const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
     const inDays = n => iso(new Date(today().getTime() + n * DAY));
     const uid = () => Math.random().toString(36).slice(2, 10);
+    const fmt = s => new Date(s + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 
     function sample() {
       return {
@@ -356,14 +325,14 @@
       return "ok";
     }
     function dueLabel(o) {
-      if (o.done) return "Done " + o.done;
+      if (o.done) return "Completed";
       const days = Math.round((new Date(o.due + "T00:00:00") - today()) / DAY);
       if (days < 0) return Math.abs(days) + (days === -1 ? " day" : " days") + " overdue";
       if (days === 0) return "Due today";
       if (days === 1) return "Due tomorrow";
       return "Due in " + days + " days";
     }
-    const repeatLabel = { 0: "", 1: "Monthly", 3: "Quarterly", 12: "Yearly" };
+    const repeatLabel = { 0: "Once", 1: "Monthly", 3: "Quarterly", 12: "Yearly" };
     const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
     const $ = id => document.getElementById(id);
@@ -397,28 +366,28 @@
         })
         .sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || a.due.localeCompare(b.due));
 
-      $("list").innerHTML = items.length ? items.map(o => {
-        const s = statusOf(o);
-        return `<div class="item ${s}" data-id="${o.id}">
-          <div>
-            <h3>${esc(o.title)}</h3>
-            <div class="meta">
-              <span class="tag">${esc(o.program)}</span>
-              <span class="due ${s}">${dueLabel(o)}</span>
-              <span>${o.done ? "" : esc(o.due)}</span>
-              ${o.owner ? `<span>${esc(o.owner)}</span>` : ""}
-              ${repeatLabel[o.repeat] ? `<span>↻ ${repeatLabel[o.repeat]}</span>` : ""}
-            </div>
-            ${o.notes ? `<div class="meta" style="margin-top:4px">${esc(o.notes)}</div>` : ""}
-          </div>
-          <div class="actions">
-            ${o.done ? `<button class="btn small" data-act="reopen">Reopen</button>`
-                     : `<button class="btn small primary" data-act="done">Mark done</button>`}
-            <button class="btn small ghost" data-act="edit">Edit</button>
-            <button class="btn small ghost" data-act="del" aria-label="Delete">✕</button>
-          </div>
-        </div>`;
-      }).join("") : `<div class="empty">Nothing here. ${fs === "overdue" ? "No overdue obligations." : ""}</div>`;
+      if (!items.length) {
+        $("list").innerHTML = `<div class="empty">No obligations match this filter.</div>`;
+        return;
+      }
+      $("list").innerHTML = `<table>
+        <thead><tr><th>Task</th><th>Program</th><th>Owner</th><th>Due</th><th>Status</th><th></th></tr></thead>
+        <tbody>${items.map(o => {
+          const s = statusOf(o);
+          return `<tr class="${s}" data-id="${o.id}">
+            <td><div class="title">${esc(o.title)}</div>${o.notes ? `<div class="notes">${esc(o.notes)}</div>` : ""}</td>
+            <td><span class="prog">${esc(o.program)}</span></td>
+            <td>${esc(o.owner || "—")}</td>
+            <td class="date">${o.done ? fmt(o.done) : fmt(o.due)}<div class="sub">${repeatLabel[o.repeat] || ""}</div></td>
+            <td><span class="badge ${s}">${s === "ok" ? "On track" : dueLabel(o)}</span></td>
+            <td class="actions">
+              ${o.done ? `<button class="btn link" data-act="reopen">Reopen</button>`
+                       : `<button class="btn" data-act="done">Mark done</button>`}
+              <button class="btn link" data-act="edit">Edit</button>
+              <button class="btn link danger" data-act="del">Delete</button>
+            </td>
+          </tr>`;
+        }).join("")}</tbody></table>`;
     }
 
     function renderLog() {
@@ -427,8 +396,8 @@
         ? state.checks.length + " checks, " + state.checks.filter(c => !c.pass).length + " failed"
         : "No checks recorded yet.";
       $("log").innerHTML = rows.map(c => `<div class="row">
-        <span>${esc(c.ref)} · ${esc(c.type)}<br><small style="color:var(--muted)">${esc(c.date)}${c.missing.length ? " — missing: " + esc(c.missing.join(", ")) : ""}</small></span>
-        <span class="${c.pass ? "pass" : "fail"}">${c.pass ? "Pass" : "Fail"}</span>
+        <span><b style="font-weight:600">${esc(c.ref)}</b> · ${esc(c.type)}<div class="sub">${fmt(c.date)}${c.missing.length ? " · Missing: " + esc(c.missing.join(", ")) : ""}</div></span>
+        <span><span class="badge ${c.pass ? "ok" : "overdue"}">${c.pass ? "Pass" : "Fail"}</span></span>
       </div>`).join("");
     }
 
@@ -438,7 +407,7 @@
     $("list").addEventListener("click", e => {
       const btn = e.target.closest("button[data-act]");
       if (!btn) return;
-      const id = btn.closest(".item").dataset.id;
+      const id = btn.closest("tr").dataset.id;
       const o = state.obligations.find(x => x.id === id);
       const act = btn.dataset.act;
       if (act === "done") {
@@ -518,7 +487,7 @@
       const r = $("i-result");
       r.className = "result " + (check.pass ? "pass" : "fail");
       r.innerHTML = check.pass
-        ? "<b>Pass</b>All ISPM 15 marking points confirmed. Recorded."
+        ? "<b>Pass</b>All ISPM 15 marking points confirmed. Check recorded."
         : "<b>Fail: hold this packaging</b><ul>" + missing.map(m => "<li>" + esc(m) + "</li>").join("") + "</ul>";
       render();
     });
