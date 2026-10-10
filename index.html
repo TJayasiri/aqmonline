@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AQM Online — AI Quality Management</title>
-  <meta name="description" content="AQM Online — AI Quality Management. Under construction, see you soon.">
+  <title>AQM Online — Ai Quality Management</title>
+  <meta name="description" content="AQM Online — Ai Quality Management. Under construction, see you soon.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0b1020;
-      --fg: #f4f6fb;
-      --muted: #9aa3b8;
-      --accent: #4f8cff;
-      --accent-2: #33d6a6;
+      --bg: #070707;
+      --fg: #f5f5f5;
+      --muted: #8f8f8f;
+      --line: rgba(255, 255, 255, 0.14);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
@@ -29,20 +28,12 @@
       overflow: hidden;
       position: relative;
     }
-    .glow {
+    body::before {
+      content: "";
       position: absolute;
-      width: 600px;
-      height: 600px;
-      border-radius: 50%;
-      filter: blur(120px);
-      opacity: 0.35;
-      z-index: 0;
-      animation: drift 14s ease-in-out infinite alternate;
-    }
-    .glow.one { background: var(--accent); top: -200px; left: -150px; }
-    .glow.two { background: var(--accent-2); bottom: -220px; right: -150px; animation-delay: -7s; }
-    @keyframes drift {
-      to { transform: translate(80px, 60px) scale(1.1); }
+      inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 50% 35%, rgba(255, 255, 255, 0.07), transparent 70%);
+      pointer-events: none;
     }
     main {
       position: relative;
@@ -50,29 +41,11 @@
       text-align: center;
       max-width: 640px;
     }
-    .bot {
+    .face {
       display: block;
-      width: clamp(120px, 30vw, 170px);
-      height: auto;
-      margin: 0 auto 24px;
-      overflow: visible;
-    }
-    .bot circle { fill: var(--fg); }
-    .bot .fill { opacity: 0.14; animation: shimmer-fill 4s ease-in-out infinite; }
-    .bot .edge { opacity: 0.55; animation: shimmer-edge 4s ease-in-out infinite; }
-    .bot .eye { fill: var(--accent); opacity: 1; filter: drop-shadow(0 0 3px var(--accent)); animation: blink 6s infinite; }
-    .bot .eye.mid { animation: none; }
-    .bot .mouth { fill: var(--accent-2); opacity: 0.9; }
-    .bot .tip { fill: var(--accent-2); filter: drop-shadow(0 0 4px var(--accent-2)); animation: pulse 1.6s ease-in-out infinite; }
-    @keyframes shimmer-fill {
-      50% { opacity: 0.4; }
-    }
-    @keyframes shimmer-edge {
-      50% { opacity: 0.95; }
-    }
-    @keyframes blink {
-      0%, 92%, 100% { opacity: 1; }
-      95% { opacity: 0; }
+      width: clamp(170px, 42vw, 250px);
+      aspect-ratio: 46 / 57;
+      margin: 0 auto 20px;
     }
     .badge {
       display: inline-flex;
@@ -83,16 +56,16 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--muted);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid var(--line);
       border-radius: 999px;
       padding: 6px 14px;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
     .dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--accent-2);
+      background: var(--fg);
       animation: pulse 1.6s ease-in-out infinite;
     }
     @keyframes pulse {
@@ -103,10 +76,17 @@
       font-weight: 800;
       line-height: 1.05;
       letter-spacing: -0.03em;
-      background: linear-gradient(120deg, var(--fg) 30%, var(--accent) 70%, var(--accent-2));
+      background: linear-gradient(120deg, #ffffff 35%, #7a7a7a);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
+    }
+    .tagline {
+      margin-top: 12px;
+      font-size: clamp(0.9rem, 2.3vw, 1rem);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: #d4d4d4;
     }
     p {
       margin-top: 20px;
@@ -115,13 +95,6 @@
       line-height: 1.6;
     }
     p strong { color: var(--fg); font-weight: 600; }
-    .tagline {
-      margin-top: 12px;
-      font-size: clamp(0.9rem, 2.3vw, 1rem);
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      color: var(--accent-2);
-    }
     footer {
       position: fixed;
       bottom: 20px;
@@ -132,16 +105,17 @@
       color: var(--muted);
       z-index: 1;
     }
+    @media (max-height: 720px) {
+      .face { width: clamp(130px, 30vh, 200px); }
+    }
     @media (prefers-reduced-motion: reduce) {
-      .glow, .dot, .bot circle { animation: none; }
+      .dot { animation: none; }
     }
   </style>
 </head>
 <body>
-  <div class="glow one"></div>
-  <div class="glow two"></div>
   <main>
-    <svg class="bot" id="bot" viewBox="-1 -1 26 23" role="img" aria-label="Robot face made of dots"></svg>
+    <canvas class="face" id="face" role="img" aria-label="Humanoid robot face drawn in dots"></canvas>
     <span class="badge"><span class="dot"></span>Under construction</span>
     <h1>AQM Online</h1>
     <div class="tagline">Ai Quality Management</div>
@@ -151,45 +125,130 @@
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
 
-    // Robot face drawn on a 25x22 dot grid.
+    // Humanoid robot face as a halftone dot field. A height map models the
+    // face (brow, eye sockets, nose, lips, chin); each dot's size follows its
+    // lighting, so the face reads as a lit 3D surface.
     (function () {
-      const svg = document.getElementById("bot");
-      const NS = "http://www.w3.org/2000/svg";
-      // Signed distance to a rounded rectangle (head).
-      const head = (x, y) => {
-        const cx = 12, cy = 12.5, hw = 9, hh = 8, r = 4;
-        const qx = Math.abs(x - cx) - (hw - r), qy = Math.abs(y - cy) - (hh - r);
-        return Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - r;
-      };
-      const eyes = [[8.5, 11], [15.5, 11]];
-      const kind = (x, y) => {
-        if (x === 12 && y === 1) return "tip";
-        if (x === 12 && (y === 2 || y === 3)) return "edge";
-        if ((x === 1 || x === 23) && y >= 10 && y <= 14) return "edge";
-        const d = head(x, y);
-        if (d > 0.5) return null;
-        if (d > -0.5) return "edge";
-        for (const [ex, ey] of eyes) {
-          const e = Math.hypot(x - ex, y - ey);
-          if (e <= 2.3) return y === ey ? "eye mid" : "eye";
+      const canvas = document.getElementById("face");
+      const ctx = canvas.getContext("2d");
+      const COLS = 46, ROWS = 57;
+      const U0 = -0.85, U1 = 0.85, V0 = -0.95, V1 = 1.15;
+      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const g = (u, v, cx, cy, sx, sy, a) =>
+        a * Math.exp(-(((u - cx) / sx) ** 2 + ((v - cy) / sy) ** 2));
+      const halfWidth = (v, w) => (v < 0.05 ? w : w - 0.5 * Math.pow(v - 0.05, 1.5));
+      const headR2 = (u, v) => (u / halfWidth(v, 0.6)) ** 2 + ((v + 0.05) / 0.82) ** 2;
+
+      function height(u, v) {
+        const r2 = headR2(u, v);
+        if (r2 >= 1) return 0;
+        let h = 0.6 * Math.sqrt(1 - r2);
+        for (const s of [-1, 1]) {
+          h += g(u, v, s * 0.2, -0.15, 0.17, 0.05, 0.09);   // brow
+          h += g(u, v, s * 0.21, -0.03, 0.12, 0.065, -0.14); // eye socket
+          h += g(u, v, s * 0.32, 0.14, 0.1, 0.08, 0.07);
+          h += g(u, v, s * 0.3, 0.38, 0.1, 0.12, -0.05);  // cheek hollow    // cheekbone
         }
-        if (y === 16 && x >= 9 && x <= 15) return "mouth";
-        if (y === 15 && (x === 8 || x === 16)) return "mouth";
-        return "fill";
-      };
-      for (let y = 0; y <= 21; y++) {
-        for (let x = 0; x <= 24; x++) {
-          const k = kind(x, y);
-          if (!k) continue;
-          const c = document.createElementNS(NS, "circle");
-          c.setAttribute("cx", x);
-          c.setAttribute("cy", y);
-          c.setAttribute("r", k.startsWith("eye") || k === "tip" ? 0.42 : 0.32);
-          c.setAttribute("class", k);
-          if (k === "fill" || k === "edge") c.style.animationDelay = ((x + y) * 0.12).toFixed(2) + "s";
-          svg.appendChild(c);
+        h += g(u, v, 0, 0.12, 0.05, 0.2, 0.12);    // nose bridge
+        h += g(u, v, 0, 0.3, 0.08, 0.05, 0.1);     // nose tip
+        h += g(u, v, 0, 0.37, 0.1, 0.03, -0.06);  // under nose
+        h += g(u, v, 0, 0.44, 0.15, 0.035, 0.05);    // upper lip
+        h += g(u, v, 0, 0.49, 0.16, 0.016, -0.1); // mouth line
+        h += g(u, v, 0, 0.535, 0.13, 0.03, 0.05);    // lower lip
+        h += g(u, v, 0, 0.68, 0.13, 0.07, 0.08);     // chin
+        return h;
+      }
+
+      const dots = [];
+      const e = 0.008;
+      for (let j = 0; j < ROWS; j++) {
+        for (let i = 0; i < COLS; i++) {
+          const u = U0 + (U1 - U0) * i / (COLS - 1);
+          const v = V0 + (V1 - V0) * j / (ROWS - 1);
+          const d = { i, j, u, v, kind: "bg" };
+          const r2 = headR2(u, v);
+          if (r2 < 1) {
+            const hx = (height(u + e, v) - height(u - e, v)) / (2 * e);
+            const hy = (height(u, v + e) - height(u, v - e)) / (2 * e);
+            const n = Math.hypot(hx, hy, 1);
+            Object.assign(d, { kind: "head", nx: -hx / n, ny: -hy / n, nz: 1 / n, rim: r2 });
+            // Face-plate seam, the line that makes it a machine.
+            const plate = (u / halfWidth(v + 0.06, 0.47)) ** 2 + ((v - 0.1) / 0.7) ** 2;
+            if (Math.abs(plate - 1) < 0.09 && v > -0.45) d.seam = true;
+            for (const s of [-1, 1]) {
+              if (((u - s * 0.21) / 0.09) ** 2 + ((v + 0.03) / 0.035) ** 2 < 1) d.kind = "eye";
+            }
+          } else if (v > 0.6 && Math.abs(u) < 0.23) {
+            const nx = u / 0.23;
+            Object.assign(d, { kind: "neck", nx: nx, ny: 0, nz: Math.sqrt(1 - nx * nx) });
+            if (Math.abs(Math.abs(u) - 0.1) < 0.02) d.seam = true;
+          }
+          dots.push(d);
         }
       }
+
+      let w, h, step;
+      function resize() {
+        const dpr = window.devicePixelRatio || 1;
+        w = canvas.clientWidth; h = canvas.clientHeight;
+        canvas.width = w * dpr; canvas.height = h * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        step = w / COLS;
+      }
+
+      function draw(t) {
+        ctx.clearRect(0, 0, w, h);
+        const sway = still ? 0 : Math.sin(t / 2600) * 0.35;
+        let lx = -0.35 + sway, ly = -0.3, lz = 0.9;
+        const ln = Math.hypot(lx, ly, lz); lx /= ln; ly /= ln; lz /= ln;
+        const scan = still ? -9 : V0 - 0.3 + ((t / 4500) % 1) * (V1 - V0 + 0.6);
+        const eyeGlow = still ? 1 : 0.8 + 0.2 * Math.sin(t / 700);
+        const maxR = step * 0.46;
+
+        for (const d of dots) {
+          const x = (d.i + 0.5) * step, y = (d.j + 0.5) * step;
+          let b;
+          if (d.kind === "bg") {
+            const fade = Math.max(0, 1 - Math.hypot(d.u, (d.v - 0.1) * 0.8) / 1.2);
+            b = 0.05 * fade;
+          } else if (d.kind === "eye") {
+            continue;
+          } else {
+            const diff = Math.max(0, d.nx * lx + d.ny * ly + d.nz * lz);
+            const rz = 2 * diff * d.nz - lz;
+            const spec = Math.pow(Math.max(0, rz), 18) * 0.55;
+            b = 0.02 + 0.85 * Math.pow(diff, 1.4) + spec;
+            if (d.kind === "head") b *= 1 - 0.55 * Math.pow(d.rim, 4);
+            if (d.kind === "neck") b *= 0.6 * Math.max(0, Math.min(1, 1 - (d.v - 0.85) / 0.3));
+            if (d.seam) b *= 0.3;
+          }
+          b += 0.35 * Math.exp(-((d.v - scan) ** 2) / 0.0025) * (d.kind === "bg" ? 0.15 : 1);
+          b = Math.min(1, b);
+          const r = Math.max(0.5, maxR * Math.sqrt(b));
+          ctx.fillStyle = "rgba(255,255,255," + (0.18 + 0.82 * b).toFixed(3) + ")";
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.save();
+        ctx.shadowColor = "rgba(255,255,255,0.9)";
+        ctx.shadowBlur = step * 1.6 * eyeGlow;
+        ctx.fillStyle = "rgba(255,255,255," + eyeGlow.toFixed(3) + ")";
+        for (const d of dots) {
+          if (d.kind !== "eye") continue;
+          ctx.beginPath();
+          ctx.arc((d.i + 0.5) * step, (d.j + 0.5) * step, maxR * 0.95, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      resize();
+      window.addEventListener("resize", () => { resize(); if (still) draw(0); });
+      if (still) draw(0);
+      else requestAnimationFrame(function loop(t) { draw(t); requestAnimationFrame(loop); });
     })();
   </script>
 </body>
