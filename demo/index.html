@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AQM Online — Compliance Preview</title>
+  <meta name="description" content="Early preview: track trusted trader obligations and ISPM 15 wood packaging checks.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070707;
+      --panel: #111111;
+      --panel-2: #181818;
+      --fg: #f5f5f5;
+      --muted: #8f8f8f;
+      --line: rgba(255, 255, 255, 0.12);
+      --bad: #ff6b6b;
+      --warn: #f2c94c;
+      --ok: #d4d4d4;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      font-size: 15px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    a { color: inherit; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    .shell { max-width: 1040px; margin: 0 auto; padding: 24px 16px 64px; }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .brand { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; text-decoration: none; }
+    .brand b { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em; }
+    .brand span { color: var(--muted); font-size: 0.9rem; font-weight: 500; }
+    .pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 12px;
+    }
+
+    .intro { color: var(--muted); max-width: 680px; margin-bottom: 24px; }
+    .intro strong { color: var(--fg); font-weight: 600; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 16px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .stat:hover { border-color: rgba(255, 255, 255, 0.3); }
+    .stat .n { font-size: 1.9rem; font-weight: 800; line-height: 1.1; }
+    .stat .l { color: var(--muted); font-size: 0.85rem; }
+    .stat.bad .n { color: var(--bad); }
+    .stat.warn .n { color: var(--warn); }
+
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 18px; }
+    .tab {
+      background: none;
+      border: none;
+      padding: 10px 14px;
+      color: var(--muted);
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--fg); }
+
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+    .toolbar .spacer { flex: 1; }
+    .btn {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 7px 12px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    .btn:hover { border-color: rgba(255, 255, 255, 0.35); }
+    .btn.primary { background: var(--fg); color: #000; border-color: var(--fg); font-weight: 600; }
+    .btn.ghost { background: none; }
+    .btn.small { padding: 4px 9px; font-size: 0.82rem; }
+    select, input[type="text"], input[type="date"], textarea {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 7px 10px;
+    }
+    input[type="date"] { color-scheme: dark; }
+
+    .list { display: grid; gap: 8px; }
+    .item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 6px 16px;
+      align-items: center;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .item.overdue { border-left-color: var(--bad); }
+    .item.soon { border-left-color: var(--warn); }
+    .item.done { opacity: 0.55; }
+    .item h3 { font-size: 0.98rem; font-weight: 600; }
+    .meta { display: flex; flex-wrap: wrap; gap: 6px 12px; color: var(--muted); font-size: 0.84rem; }
+    .tag {
+      font-size: 0.74rem;
+      font-weight: 600;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 1px 7px;
+      color: var(--fg);
+    }
+    .due.overdue { color: var(--bad); font-weight: 600; }
+    .due.soon { color: var(--warn); font-weight: 600; }
+    .actions { display: flex; gap: 6px; }
+    .empty { color: var(--muted); padding: 32px; text-align: center; border: 1px dashed var(--line); border-radius: 10px; }
+
+    .grid2 { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; align-items: start; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+    .card h2 { font-size: 1.05rem; margin-bottom: 4px; }
+    .card .sub { color: var(--muted); font-size: 0.86rem; margin-bottom: 14px; }
+    .field { display: grid; gap: 4px; margin-bottom: 12px; }
+    .field > span { font-size: 0.82rem; color: var(--muted); font-weight: 500; }
+    .checks { display: grid; gap: 8px; margin-bottom: 14px; }
+    .checks label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+    .checks input { margin-top: 4px; accent-color: #fff; }
+    .checks small { display: block; color: var(--muted); }
+    .result { margin-top: 12px; padding: 12px; border-radius: 8px; border: 1px solid var(--line); display: none; }
+    .result.pass { display: block; border-color: rgba(255, 255, 255, 0.4); }
+    .result.fail { display: block; border-color: var(--bad); }
+    .result b { display: block; margin-bottom: 4px; }
+    .result.fail b { color: var(--bad); }
+    .result ul { padding-left: 18px; color: var(--muted); font-size: 0.88rem; }
+    .log .row {
+      display: flex; justify-content: space-between; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 0.88rem;
+    }
+    .log .row:last-child { border-bottom: none; }
+    .log .fail { color: var(--bad); font-weight: 600; }
+    .log .pass { font-weight: 600; }
+
+    dialog {
+      background: var(--panel);
+      color: var(--fg);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px;
+      width: min(480px, calc(100vw - 32px));
+      margin: auto;
+    }
+    dialog::backdrop { background: rgba(0, 0, 0, 0.7); }
+    dialog h2 { font-size: 1.1rem; margin-bottom: 14px; }
+    dialog .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    dialog .foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+    footer.note { margin-top: 40px; color: var(--muted); font-size: 0.8rem; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    footer.note .spacer { flex: 1; }
+
+    @media (max-width: 760px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .grid2 { grid-template-columns: 1fr; }
+      .item { grid-template-columns: 1fr; }
+      .actions { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <a class="brand" href="../"><b>AQM Online</b><span>Ai Quality Management</span></a>
+      <span class="pill">Early preview</span>
+    </header>
+
+    <p class="intro">
+      Most trusted trader suspensions come from <strong>missed basics</strong>, not security incidents:
+      late validation responses, stale security profiles, missing ISPM 15 marks.
+      This preview keeps those basics in front of you.
+    </p>
+
+    <section class="stats" aria-label="Summary">
+      <button class="stat bad" data-jump="overdue"><div class="n" id="s-overdue">0</div><div class="l">Overdue</div></button>
+      <button class="stat warn" data-jump="soon"><div class="n" id="s-soon">0</div><div class="l">Due in 30 days</div></button>
+      <button class="stat" data-jump="open"><div class="n" id="s-open">0</div><div class="l">Open obligations</div></button>
+      <button class="stat" data-jump="ispm"><div class="n" id="s-ispm">—</div><div class="l">ISPM 15 pass rate</div></button>
+    </section>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="obligations" aria-selected="true">Obligations</button>
+      <button class="tab" role="tab" data-tab="ispm" aria-selected="false">ISPM 15 check</button>
+    </nav>
+
+    <section id="tab-obligations">
+      <div class="toolbar">
+        <select id="f-status" aria-label="Filter by status">
+          <option value="open">Open</option>
+          <option value="overdue">Overdue</option>
+          <option value="soon">Due in 30 days</option>
+          <option value="done">Done</option>
+          <option value="all">All</option>
+        </select>
+        <select id="f-program" aria-label="Filter by program"></select>
+        <span class="spacer"></span>
+        <button class="btn primary" id="add">+ Add obligation</button>
+      </div>
+      <div class="list" id="list"></div>
+    </section>
+
+    <section id="tab-ispm" hidden>
+      <div class="grid2">
+        <form class="card" id="ispm-form">
+          <h2>Wood packaging check</h2>
+          <p class="sub">Check each pallet, crate or dunnage before it ships.</p>
+          <div class="field">
+            <span>Shipment / PO reference</span>
+            <input type="text" id="i-ref" placeholder="e.g. PO-24581" required>
+          </div>
+          <div class="field">
+            <span>Packaging type</span>
+            <select id="i-type">
+              <option>Pallet</option>
+              <option>Crate</option>
+              <option>Dunnage</option>
+              <option>Skid</option>
+              <option>Other wood packaging</option>
+            </select>
+          </div>
+          <div class="checks">
+            <label><input type="checkbox" data-need="IPPC symbol"><span>IPPC symbol present<small>The wheat-ear logo</small></span></label>
+            <label><input type="checkbox" data-need="Country code"><span>Country code<small>Two-letter ISO code, e.g. CN, LK, VN</small></span></label>
+            <label><input type="checkbox" data-need="Producer / treatment provider number"><span>Producer or treatment provider number</span></label>
+            <label><input type="checkbox" data-need="Treatment code"><span>Treatment code<small>e.g. HT (heat treated) or MB (methyl bromide)</small></span></label>
+            <label><input type="checkbox" data-need="Mark legible and permanent"><span>Mark is legible and permanent<small>Stamped or burned in, not handwritten, visible on two opposite sides</small></span></label>
+            <label><input type="checkbox" data-need="Debarked, no signs of pests"><span>Debarked, no signs of live pests</span></label>
+          </div>
+          <div class="toolbar">
+            <button class="btn primary" type="submit">Record check</button>
+            <button class="btn ghost" type="reset">Clear</button>
+          </div>
+          <div class="result" id="i-result" role="status"></div>
+        </form>
+        <div class="card log">
+          <h2>Recent checks</h2>
+          <p class="sub" id="log-sub">No checks recorded yet.</p>
+          <div id="log"></div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="note">
+      <span>Preview only: data is stored in this browser and nothing is sent anywhere.</span>
+      <span class="spacer"></span>
+      <button class="btn small ghost" id="export">Export</button>
+      <label class="btn small ghost">Import<input type="file" id="import" accept="application/json" hidden></label>
+      <button class="btn small ghost" id="reset">Reset sample data</button>
+    </footer>
+  </div>
+
+  <dialog id="dlg">
+    <form method="dialog" id="dlg-form">
+      <h2 id="dlg-title">Add obligation</h2>
+      <div class="field"><span>What needs to happen</span><input type="text" id="d-title" required></div>
+      <div class="row2">
+        <div class="field"><span>Program</span><input type="text" id="d-program" list="programs" required></div>
+        <div class="field"><span>Owner</span><input type="text" id="d-owner"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><span>Due date</span><input type="date" id="d-due" required></div>
+        <div class="field">
+          <span>Repeats</span>
+          <select id="d-repeat">
+            <option value="0">Once</option>
+            <option value="1">Monthly</option>
+            <option value="3">Quarterly</option>
+            <option value="12">Yearly</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><span>Notes</span><textarea id="d-notes" rows="2"></textarea></div>
+      <div class="foot">
+        <button class="btn ghost" value="cancel" formnovalidate>Cancel</button>
+        <button class="btn primary" value="save">Save</button>
+      </div>
+    </form>
+  </dialog>
+  <datalist id="programs"></datalist>
+
+  <script>
+    const KEY = "aqm-preview-v1";
+    const DAY = 86400000;
+    const today = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+    const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    const inDays = n => iso(new Date(today().getTime() + n * DAY));
+    const uid = () => Math.random().toString(36).slice(2, 10);
+
+    function sample() {
+      return {
+        obligations: [
+          { id: uid(), title: "Respond to validation report findings", program: "CTPAT", owner: "Compliance lead", due: inDays(-4), repeat: 0, notes: "Assign an owner to each finding and reply to the CTPAT Specialist." },
+          { id: uid(), title: "Update annual security profile", program: "CTPAT", owner: "Compliance lead", due: inDays(12), repeat: 12, notes: "Review every section, not only the changed ones." },
+          { id: uid(), title: "Agree validation dates with CTPAT Specialist", program: "CTPAT", owner: "Operations", due: inDays(25), repeat: 0, notes: "" },
+          { id: uid(), title: "Supplier security questionnaire refresh", program: "CTPAT", owner: "Sourcing", due: inDays(48), repeat: 12, notes: "High-risk suppliers first." },
+          { id: uid(), title: "AEO self-assessment review", program: "AEO", owner: "Customs manager", due: inDays(70), repeat: 12, notes: "" },
+          { id: uid(), title: "Wood packaging supplier certificate check", program: "ISPM 15", owner: "Warehouse", due: inDays(-1), repeat: 3, notes: "Confirm the treatment provider's registration is current." },
+          { id: uid(), title: "Security awareness training for dock staff", program: "CTPAT", owner: "HR", due: inDays(95), repeat: 12, notes: "" },
+        ],
+        checks: [],
+      };
+    }
+
+    function load() {
+      try {
+        const s = JSON.parse(localStorage.getItem(KEY));
+        if (s && Array.isArray(s.obligations)) return s;
+      } catch (e) {}
+      return sample();
+    }
+    function save() {
+      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    }
+    let state = load();
+
+    function statusOf(o) {
+      if (o.done) return "done";
+      const days = Math.round((new Date(o.due + "T00:00:00") - today()) / DAY);
+      if (days < 0) return "overdue";
+      if (days <= 30) return "soon";
+      return "ok";
+    }
+    function dueLabel(o) {
+      if (o.done) return "Done " + o.done;
+      const days = Math.round((new Date(o.due + "T00:00:00") - today()) / DAY);
+      if (days < 0) return Math.abs(days) + (days === -1 ? " day" : " days") + " overdue";
+      if (days === 0) return "Due today";
+      if (days === 1) return "Due tomorrow";
+      return "Due in " + days + " days";
+    }
+    const repeatLabel = { 0: "", 1: "Monthly", 3: "Quarterly", 12: "Yearly" };
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+    const $ = id => document.getElementById(id);
+
+    function renderStats() {
+      const st = state.obligations.map(statusOf);
+      $("s-overdue").textContent = st.filter(s => s === "overdue").length;
+      $("s-soon").textContent = st.filter(s => s === "soon").length;
+      $("s-open").textContent = st.filter(s => s !== "done").length;
+      const n = state.checks.length;
+      $("s-ispm").textContent = n ? Math.round(100 * state.checks.filter(c => c.pass).length / n) + "%" : "—";
+    }
+
+    function renderPrograms() {
+      const progs = [...new Set(state.obligations.map(o => o.program))].sort();
+      const sel = $("f-program"), cur = sel.value || "all";
+      sel.innerHTML = '<option value="all">All programs</option>' + progs.map(p => `<option>${esc(p)}</option>`).join("");
+      sel.value = progs.includes(cur) ? cur : "all";
+      $("programs").innerHTML = progs.map(p => `<option value="${esc(p)}">`).join("");
+    }
+
+    function renderList() {
+      const fs = $("f-status").value, fp = $("f-program").value;
+      const items = state.obligations
+        .filter(o => fp === "all" || o.program === fp)
+        .filter(o => {
+          const s = statusOf(o);
+          if (fs === "all") return true;
+          if (fs === "open") return s !== "done";
+          return s === fs;
+        })
+        .sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || a.due.localeCompare(b.due));
+
+      $("list").innerHTML = items.length ? items.map(o => {
+        const s = statusOf(o);
+        return `<div class="item ${s}" data-id="${o.id}">
+          <div>
+            <h3>${esc(o.title)}</h3>
+            <div class="meta">
+              <span class="tag">${esc(o.program)}</span>
+              <span class="due ${s}">${dueLabel(o)}</span>
+              <span>${o.done ? "" : esc(o.due)}</span>
+              ${o.owner ? `<span>${esc(o.owner)}</span>` : ""}
+              ${repeatLabel[o.repeat] ? `<span>↻ ${repeatLabel[o.repeat]}</span>` : ""}
+            </div>
+            ${o.notes ? `<div class="meta" style="margin-top:4px">${esc(o.notes)}</div>` : ""}
+          </div>
+          <div class="actions">
+            ${o.done ? `<button class="btn small" data-act="reopen">Reopen</button>`
+                     : `<button class="btn small primary" data-act="done">Mark done</button>`}
+            <button class="btn small ghost" data-act="edit">Edit</button>
+            <button class="btn small ghost" data-act="del" aria-label="Delete">✕</button>
+          </div>
+        </div>`;
+      }).join("") : `<div class="empty">Nothing here. ${fs === "overdue" ? "No overdue obligations." : ""}</div>`;
+    }
+
+    function renderLog() {
+      const rows = state.checks.slice().reverse().slice(0, 12);
+      $("log-sub").textContent = state.checks.length
+        ? state.checks.length + " checks, " + state.checks.filter(c => !c.pass).length + " failed"
+        : "No checks recorded yet.";
+      $("log").innerHTML = rows.map(c => `<div class="row">
+        <span>${esc(c.ref)} · ${esc(c.type)}<br><small style="color:var(--muted)">${esc(c.date)}${c.missing.length ? " — missing: " + esc(c.missing.join(", ")) : ""}</small></span>
+        <span class="${c.pass ? "pass" : "fail"}">${c.pass ? "Pass" : "Fail"}</span>
+      </div>`).join("");
+    }
+
+    function render() { renderStats(); renderPrograms(); renderList(); renderLog(); save(); }
+
+    // Obligation actions
+    $("list").addEventListener("click", e => {
+      const btn = e.target.closest("button[data-act]");
+      if (!btn) return;
+      const id = btn.closest(".item").dataset.id;
+      const o = state.obligations.find(x => x.id === id);
+      const act = btn.dataset.act;
+      if (act === "done") {
+        if (+o.repeat) {
+          const d = new Date(o.due + "T00:00:00");
+          d.setMonth(d.getMonth() + +o.repeat);
+          o.due = iso(d);
+          o.lastDone = iso(today());
+        } else {
+          o.done = iso(today());
+        }
+      } else if (act === "reopen") {
+        delete o.done;
+      } else if (act === "del") {
+        if (!confirm("Delete \"" + o.title + "\"?")) return;
+        state.obligations = state.obligations.filter(x => x.id !== id);
+      } else if (act === "edit") {
+        return openDialog(o);
+      }
+      render();
+    });
+
+    let editing = null;
+    function openDialog(o) {
+      editing = o || null;
+      $("dlg-title").textContent = o ? "Edit obligation" : "Add obligation";
+      $("d-title").value = o ? o.title : "";
+      $("d-program").value = o ? o.program : ($("f-program").value !== "all" ? $("f-program").value : "CTPAT");
+      $("d-owner").value = o ? o.owner : "";
+      $("d-due").value = o ? o.due : inDays(30);
+      $("d-repeat").value = o ? String(o.repeat) : "0";
+      $("d-notes").value = o ? o.notes : "";
+      $("dlg").showModal();
+      $("d-title").focus();
+    }
+    $("add").addEventListener("click", () => openDialog());
+    $("dlg").addEventListener("close", () => {
+      if ($("dlg").returnValue !== "save") return;
+      const data = {
+        title: $("d-title").value.trim(),
+        program: $("d-program").value.trim(),
+        owner: $("d-owner").value.trim(),
+        due: $("d-due").value,
+        repeat: +$("d-repeat").value,
+        notes: $("d-notes").value.trim(),
+      };
+      if (editing) Object.assign(editing, data);
+      else state.obligations.push({ id: uid(), ...data });
+      render();
+    });
+
+    $("f-status").addEventListener("change", renderList);
+    $("f-program").addEventListener("change", renderList);
+
+    // Tabs and stat shortcuts
+    function showTab(name) {
+      document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.tab === name));
+      $("tab-obligations").hidden = name !== "obligations";
+      $("tab-ispm").hidden = name !== "ispm";
+    }
+    document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => showTab(t.dataset.tab)));
+    document.querySelectorAll("[data-jump]").forEach(b => b.addEventListener("click", () => {
+      const j = b.dataset.jump;
+      if (j === "ispm") return showTab("ispm");
+      showTab("obligations");
+      $("f-status").value = j;
+      renderList();
+    }));
+
+    // ISPM 15 check
+    $("ispm-form").addEventListener("submit", e => {
+      e.preventDefault();
+      const boxes = [...document.querySelectorAll("#ispm-form [data-need]")];
+      const missing = boxes.filter(b => !b.checked).map(b => b.dataset.need);
+      const check = { ref: $("i-ref").value.trim(), type: $("i-type").value, date: iso(today()), pass: !missing.length, missing };
+      state.checks.push(check);
+      const r = $("i-result");
+      r.className = "result " + (check.pass ? "pass" : "fail");
+      r.innerHTML = check.pass
+        ? "<b>Pass</b>All ISPM 15 marking points confirmed. Recorded."
+        : "<b>Fail: hold this packaging</b><ul>" + missing.map(m => "<li>" + esc(m) + "</li>").join("") + "</ul>";
+      render();
+    });
+    $("ispm-form").addEventListener("reset", () => { $("i-result").className = "result"; });
+
+    // Export / import / reset
+    $("export").addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "aqm-preview-" + iso(today()) + ".json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+    $("import").addEventListener("change", async e => {
+      const f = e.target.files[0];
+      if (!f) return;
+      try {
+        const s = JSON.parse(await f.text());
+        if (!Array.isArray(s.obligations)) throw new Error();
+        state = { obligations: s.obligations, checks: Array.isArray(s.checks) ? s.checks : [] };
+        render();
+      } catch (err) { alert("That file isn't an AQM preview export."); }
+      e.target.value = "";
+    });
+    $("reset").addEventListener("click", () => {
+      if (!confirm("Replace everything with the sample data?")) return;
+      state = sample();
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>

@@ -98,6 +98,17 @@
       line-height: 1.6;
     }
     p strong { color: var(--fg); font-weight: 600; }
+    .preview {
+      display: inline-block;
+      margin-top: 28px;
+      color: var(--fg);
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-decoration: none;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 2px;
+    }
+    .preview:hover { border-bottom-color: var(--fg); }
     footer {
       position: fixed;
       bottom: 20px;
@@ -132,6 +143,7 @@
       <h1>AQM Online</h1>
       <div class="tagline">Ai Quality Management</div>
       <p>We're building something new.<br><strong>See you soon.</strong></p>
+      <a class="preview" href="demo/">Try the early preview →</a>
     </main>
     <canvas class="robot" id="robot" role="img" aria-label="Humanoid robot drawn in dots"></canvas>
   </div>
