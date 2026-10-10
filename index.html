@@ -21,10 +21,6 @@
       font-family: "Inter", system-ui, -apple-system, sans-serif;
       background: var(--bg);
       color: var(--fg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px 16px;
       overflow: hidden;
       position: relative;
     }
@@ -32,20 +28,27 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: radial-gradient(ellipse 60% 50% at 50% 35%, rgba(255, 255, 255, 0.07), transparent 70%);
+      background: radial-gradient(ellipse 45% 60% at 72% 45%, rgba(255, 255, 255, 0.07), transparent 70%);
       pointer-events: none;
     }
-    main {
+    .wrap {
       position: relative;
       z-index: 1;
-      text-align: center;
-      max-width: 640px;
+      height: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px clamp(16px, 5vw, 64px) 0;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 4vw;
     }
-    .face {
+    main { max-width: 560px; }
+    .robot {
       display: block;
-      width: clamp(170px, 42vw, 250px);
-      aspect-ratio: 46 / 57;
-      margin: 0 auto 20px;
+      height: min(92vh, 900px);
+      aspect-ratio: 64 / 101;
+      align-self: end;
     }
     .badge {
       display: inline-flex;
@@ -59,7 +62,7 @@
       border: 1px solid var(--line);
       border-radius: 999px;
       padding: 6px 14px;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
     }
     .dot {
       width: 8px;
@@ -72,7 +75,7 @@
       50% { opacity: 0.3; }
     }
     h1 {
-      font-size: clamp(2.6rem, 9vw, 4.5rem);
+      font-size: clamp(2.6rem, 7vw, 5rem);
       font-weight: 800;
       line-height: 1.05;
       letter-spacing: -0.03em;
@@ -83,14 +86,14 @@
     }
     .tagline {
       margin-top: 12px;
-      font-size: clamp(0.9rem, 2.3vw, 1rem);
+      font-size: clamp(0.9rem, 2.3vw, 1.05rem);
       font-weight: 600;
       letter-spacing: 0.02em;
       color: #d4d4d4;
     }
     p {
-      margin-top: 20px;
-      font-size: clamp(1.05rem, 3vw, 1.3rem);
+      margin-top: 24px;
+      font-size: clamp(1.05rem, 2.4vw, 1.3rem);
       color: var(--muted);
       line-height: 1.6;
     }
@@ -98,15 +101,24 @@
     footer {
       position: fixed;
       bottom: 20px;
-      left: 0;
-      right: 0;
-      text-align: center;
+      left: clamp(16px, 5vw, 64px);
       font-size: 0.8rem;
       color: var(--muted);
-      z-index: 1;
+      z-index: 2;
     }
-    @media (max-height: 720px) {
-      .face { width: clamp(130px, 30vh, 200px); }
+    @media (max-width: 820px) {
+      .wrap { grid-template-columns: 1fr; padding-bottom: 24px; }
+      main { text-align: center; margin: 0 auto; }
+      .robot {
+        position: absolute;
+        left: 50%;
+        bottom: 0;
+        transform: translateX(-50%);
+        height: 82vh;
+        opacity: 0.3;
+        z-index: -1;
+      }
+      footer { left: 0; right: 0; text-align: center; }
     }
     @media (prefers-reduced-motion: reduce) {
       .dot { animation: none; }
@@ -114,25 +126,27 @@
   </style>
 </head>
 <body>
-  <main>
-    <canvas class="face" id="face" role="img" aria-label="Humanoid robot face drawn in dots"></canvas>
-    <span class="badge"><span class="dot"></span>Under construction</span>
-    <h1>AQM Online</h1>
-    <div class="tagline">Ai Quality Management</div>
-    <p>We're building something new.<br><strong>See you soon.</strong></p>
-  </main>
+  <div class="wrap">
+    <main>
+      <span class="badge"><span class="dot"></span>Under construction</span>
+      <h1>AQM Online</h1>
+      <div class="tagline">Ai Quality Management</div>
+      <p>We're building something new.<br><strong>See you soon.</strong></p>
+    </main>
+    <canvas class="robot" id="robot" role="img" aria-label="Humanoid robot drawn in dots"></canvas>
+  </div>
   <footer>&copy; <span id="year">2026</span> AQM Online</footer>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
 
-    // Humanoid robot face as a halftone dot field. A height map models the
-    // face (brow, eye sockets, nose, lips, chin); each dot's size follows its
-    // lighting, so the face reads as a lit 3D surface.
+    // Humanoid robot as a halftone dot field. The body is built from simple
+    // 3D volumes (ellipsoids and capsules); each dot is sized by how much
+    // light its surface catches, and joins between parts become seams.
     (function () {
-      const canvas = document.getElementById("face");
+      const canvas = document.getElementById("robot");
       const ctx = canvas.getContext("2d");
-      const COLS = 46, ROWS = 57;
-      const U0 = -0.85, U1 = 0.85, V0 = -0.95, V1 = 1.15;
+      const COLS = 64, ROWS = 101;
+      const X0 = -1.7, X1 = 1.7, Y0 = -1.05, Y1 = 4.3;
       const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       const g = (u, v, cx, cy, sx, sy, a) =>
@@ -140,49 +154,88 @@
       const halfWidth = (v, w) => (v < 0.05 ? w : w - 0.5 * Math.pow(v - 0.05, 1.5));
       const headR2 = (u, v) => (u / halfWidth(v, 0.6)) ** 2 + ((v + 0.05) / 0.82) ** 2;
 
-      function height(u, v) {
+      function head(u, v) {
         const r2 = headR2(u, v);
-        if (r2 >= 1) return 0;
-        let h = 0.6 * Math.sqrt(1 - r2);
+        if (r2 >= 1) return -1;
+        let h = 0.6 * Math.sqrt(1 - r2) + 0.25;
         for (const s of [-1, 1]) {
           h += g(u, v, s * 0.2, -0.15, 0.17, 0.05, 0.09);   // brow
           h += g(u, v, s * 0.21, -0.03, 0.12, 0.065, -0.14); // eye socket
-          h += g(u, v, s * 0.32, 0.14, 0.1, 0.08, 0.07);
-          h += g(u, v, s * 0.3, 0.38, 0.1, 0.12, -0.05);  // cheek hollow    // cheekbone
+          h += g(u, v, s * 0.32, 0.14, 0.1, 0.08, 0.07);    // cheekbone
+          h += g(u, v, s * 0.3, 0.38, 0.1, 0.12, -0.05);    // cheek hollow
         }
         h += g(u, v, 0, 0.12, 0.05, 0.2, 0.12);    // nose bridge
         h += g(u, v, 0, 0.3, 0.08, 0.05, 0.1);     // nose tip
-        h += g(u, v, 0, 0.37, 0.1, 0.03, -0.06);  // under nose
-        h += g(u, v, 0, 0.44, 0.15, 0.035, 0.05);    // upper lip
-        h += g(u, v, 0, 0.49, 0.16, 0.016, -0.1); // mouth line
-        h += g(u, v, 0, 0.535, 0.13, 0.03, 0.05);    // lower lip
-        h += g(u, v, 0, 0.68, 0.13, 0.07, 0.08);     // chin
+        h += g(u, v, 0, 0.37, 0.1, 0.03, -0.06);   // under nose
+        h += g(u, v, 0, 0.44, 0.15, 0.035, 0.05);  // upper lip
+        h += g(u, v, 0, 0.49, 0.16, 0.016, -0.1);  // mouth line
+        h += g(u, v, 0, 0.535, 0.13, 0.03, 0.05);  // lower lip
+        h += g(u, v, 0, 0.68, 0.13, 0.07, 0.08);   // chin
         return h;
       }
+      const ellipsoid = (x, y, cx, cy, rx, ry, depth, lift) => {
+        const r2 = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2;
+        return r2 < 1 ? depth * Math.sqrt(1 - r2) + lift : -1;
+      };
+      const capsule = (x, y, ax, ay, bx, by, r, lift) => {
+        const dx = bx - ax, dy = by - ay;
+        const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy)));
+        const d = Math.hypot(x - ax - t * dx, y - ay - t * dy);
+        return d < r ? Math.sqrt(r * r - d * d) + lift : -1;
+      };
 
+      // [shape(x, y), albedo]
+      const parts = [
+        [head, 1],
+        [(x, y) => capsule(x, y, 0, 0.6, 0, 1.2, 0.24, 0), 0.4],                // neck
+        [(x, y) => capsule(x, y, -0.5, 1.5, 0.5, 1.5, 0.4, 0.05), 0.95],        // collar
+        [(x, y) => ellipsoid(x, y, 0, 1.95, 0.85, 0.72, 0.55, 0.12), 1],        // chest
+        [(x, y) => ellipsoid(x, y, 0, 2.72, 0.56, 0.42, 0.45, 0), 0.28],        // abdomen
+        [(x, y) => ellipsoid(x, y, 0, 3.25, 0.72, 0.36, 0.45, 0), 0.5],         // pelvis
+        ...[-1, 1].flatMap(s => [
+          [(x, y) => ellipsoid(x, y, s * 1.02, 1.55, 0.34, 0.34, 0.34, 0.05), 0.9], // shoulder
+          [(x, y) => capsule(x, y, s * 1.08, 1.8, s * 1.17, 2.55, 0.22, 0), 0.95],  // upper arm
+          [(x, y) => ellipsoid(x, y, s * 1.18, 2.67, 0.2, 0.2, 0.2, 0.02), 0.3],    // elbow
+          [(x, y) => capsule(x, y, s * 1.2, 2.8, s * 1.25, 3.5, 0.19, 0), 0.9],     // forearm
+          [(x, y) => ellipsoid(x, y, s * 1.27, 3.78, 0.16, 0.26, 0.16, 0), 0.4],    // hand
+          [(x, y) => capsule(x, y, s * 0.36, 3.45, s * 0.38, 4.6, 0.28, 0), 0.95],  // thigh
+        ]),
+      ];
+
+      function sample(x, y) {
+        let best = -1, id = -1;
+        for (let k = 0; k < parts.length; k++) {
+          const z = parts[k][0](x, y);
+          if (z > best) { best = z; id = k; }
+        }
+        return [best, id];
+      }
+
+      const dx = (X1 - X0) / (COLS - 1), dy = (Y1 - Y0) / (ROWS - 1);
+      const e = 0.01, s2 = dx * 0.6;
       const dots = [];
-      const e = 0.008;
       for (let j = 0; j < ROWS; j++) {
         for (let i = 0; i < COLS; i++) {
-          const u = U0 + (U1 - U0) * i / (COLS - 1);
-          const v = V0 + (V1 - V0) * j / (ROWS - 1);
-          const d = { i, j, u, v, kind: "bg" };
-          const r2 = headR2(u, v);
-          if (r2 < 1) {
-            const hx = (height(u + e, v) - height(u - e, v)) / (2 * e);
-            const hy = (height(u, v + e) - height(u, v - e)) / (2 * e);
+          const x = X0 + dx * i, y = Y0 + dy * j;
+          const [z, id] = sample(x, y);
+          const d = { i, j, x, y, solid: z > 0 };
+          if (d.solid) {
+            const hx = (sample(x + e, y)[0] - sample(x - e, y)[0]) / (2 * e);
+            const hy = (sample(x, y + e)[0] - sample(x, y - e)[0]) / (2 * e);
             const n = Math.hypot(hx, hy, 1);
-            Object.assign(d, { kind: "head", nx: -hx / n, ny: -hy / n, nz: 1 / n, rim: r2 });
-            // Face-plate seam, the line that makes it a machine.
-            const plate = (u / halfWidth(v + 0.06, 0.47)) ** 2 + ((v - 0.1) / 0.7) ** 2;
-            if (Math.abs(plate - 1) < 0.09 && v > -0.45) d.seam = true;
-            for (const s of [-1, 1]) {
-              if (((u - s * 0.21) / 0.09) ** 2 + ((v + 0.03) / 0.035) ** 2 < 1) d.kind = "eye";
+            d.nx = -hx / n; d.ny = -hy / n; d.nz = 1 / n;
+            d.albedo = parts[id][1];
+            d.fade = Math.max(0, Math.min(1, (Y1 - y) / 0.6));
+            // Seam where two parts meet, or at the edge of the face plate.
+            const near = [sample(x + s2, y), sample(x - s2, y), sample(x, y + s2), sample(x, y - s2)];
+            d.seam = near.some(([nz, nid]) => nz > 0 && nid !== id);
+            if (id === 0) {
+              const plate = (x / halfWidth(y + 0.06, 0.47)) ** 2 + ((y - 0.1) / 0.7) ** 2;
+              if (Math.abs(plate - 1) < 0.09 && y > -0.45) d.seam = true;
+              for (const s of [-1, 1]) {
+                if (((x - s * 0.21) / 0.09) ** 2 + ((y + 0.03) / 0.035) ** 2 < 1) d.eye = true;
+              }
             }
-          } else if (v > 0.6 && Math.abs(u) < 0.23) {
-            const nx = u / 0.23;
-            Object.assign(d, { kind: "neck", nx: nx, ny: 0, nz: Math.sqrt(1 - nx * nx) });
-            if (Math.abs(Math.abs(u) - 0.1) < 0.02) d.seam = true;
           }
           dots.push(d);
         }
@@ -202,42 +255,39 @@
         const sway = still ? 0 : Math.sin(t / 2600) * 0.35;
         let lx = -0.35 + sway, ly = -0.3, lz = 0.9;
         const ln = Math.hypot(lx, ly, lz); lx /= ln; ly /= ln; lz /= ln;
-        const scan = still ? -9 : V0 - 0.3 + ((t / 4500) % 1) * (V1 - V0 + 0.6);
+        const scan = still ? -99 : Y0 - 0.5 + ((t / 6000) % 1) * (Y1 - Y0 + 1);
         const eyeGlow = still ? 1 : 0.8 + 0.2 * Math.sin(t / 700);
         const maxR = step * 0.46;
 
         for (const d of dots) {
-          const x = (d.i + 0.5) * step, y = (d.j + 0.5) * step;
+          if (d.eye) continue;
           let b;
-          if (d.kind === "bg") {
-            const fade = Math.max(0, 1 - Math.hypot(d.u, (d.v - 0.1) * 0.8) / 1.2);
-            b = 0.05 * fade;
-          } else if (d.kind === "eye") {
-            continue;
+          if (!d.solid) {
+            const edge = Math.min(d.i, COLS - 1 - d.i, d.j, ROWS - 1 - d.j) / 8;
+            b = 0.035 * Math.min(1, edge) * Math.max(0, 1 - Math.hypot(d.x * 0.7, (d.y - 1.5) * 0.4) / 1.4);
           } else {
             const diff = Math.max(0, d.nx * lx + d.ny * ly + d.nz * lz);
             const rz = 2 * diff * d.nz - lz;
-            const spec = Math.pow(Math.max(0, rz), 18) * 0.55;
-            b = 0.02 + 0.85 * Math.pow(diff, 1.4) + spec;
-            if (d.kind === "head") b *= 1 - 0.55 * Math.pow(d.rim, 4);
-            if (d.kind === "neck") b *= 0.6 * Math.max(0, Math.min(1, 1 - (d.v - 0.85) / 0.3));
-            if (d.seam) b *= 0.3;
+            const spec = Math.pow(Math.max(0, rz), 18) * (d.albedo > 0.6 ? 0.55 : 0.25);
+            b = (0.03 + 0.85 * Math.pow(diff, 1.4)) * d.albedo + spec;
+            if (d.seam) b *= 0.25;
+            b *= d.fade;
           }
-          b += 0.35 * Math.exp(-((d.v - scan) ** 2) / 0.0025) * (d.kind === "bg" ? 0.15 : 1);
+          b += 0.3 * Math.exp(-((d.y - scan) ** 2) / 0.004) * (d.solid ? d.fade : 0.12);
           b = Math.min(1, b);
-          const r = Math.max(0.5, maxR * Math.sqrt(b));
+          if (b < 0.004) continue;
           ctx.fillStyle = "rgba(255,255,255," + (0.18 + 0.82 * b).toFixed(3) + ")";
           ctx.beginPath();
-          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.arc((d.i + 0.5) * step, (d.j + 0.5) * step, Math.max(0.5, maxR * Math.sqrt(b)), 0, Math.PI * 2);
           ctx.fill();
         }
 
         ctx.save();
         ctx.shadowColor = "rgba(255,255,255,0.9)";
-        ctx.shadowBlur = step * 1.6 * eyeGlow;
+        ctx.shadowBlur = step * 1.8 * eyeGlow;
         ctx.fillStyle = "rgba(255,255,255," + eyeGlow.toFixed(3) + ")";
         for (const d of dots) {
-          if (d.kind !== "eye") continue;
+          if (!d.eye) continue;
           ctx.beginPath();
           ctx.arc((d.i + 0.5) * step, (d.j + 0.5) * step, maxR * 0.95, 0, Math.PI * 2);
           ctx.fill();
