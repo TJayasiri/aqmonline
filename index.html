@@ -50,6 +50,30 @@
       text-align: center;
       max-width: 640px;
     }
+    .bot {
+      display: block;
+      width: clamp(120px, 30vw, 170px);
+      height: auto;
+      margin: 0 auto 24px;
+      overflow: visible;
+    }
+    .bot circle { fill: var(--fg); }
+    .bot .fill { opacity: 0.14; animation: shimmer-fill 4s ease-in-out infinite; }
+    .bot .edge { opacity: 0.55; animation: shimmer-edge 4s ease-in-out infinite; }
+    .bot .eye { fill: var(--accent); opacity: 1; filter: drop-shadow(0 0 3px var(--accent)); animation: blink 6s infinite; }
+    .bot .eye.mid { animation: none; }
+    .bot .mouth { fill: var(--accent-2); opacity: 0.9; }
+    .bot .tip { fill: var(--accent-2); filter: drop-shadow(0 0 4px var(--accent-2)); animation: pulse 1.6s ease-in-out infinite; }
+    @keyframes shimmer-fill {
+      50% { opacity: 0.4; }
+    }
+    @keyframes shimmer-edge {
+      50% { opacity: 0.95; }
+    }
+    @keyframes blink {
+      0%, 92%, 100% { opacity: 1; }
+      95% { opacity: 0; }
+    }
     .badge {
       display: inline-flex;
       align-items: center;
@@ -109,7 +133,7 @@
       z-index: 1;
     }
     @media (prefers-reduced-motion: reduce) {
-      .glow, .dot { animation: none; }
+      .glow, .dot, .bot circle { animation: none; }
     }
   </style>
 </head>
@@ -117,12 +141,56 @@
   <div class="glow one"></div>
   <div class="glow two"></div>
   <main>
+    <svg class="bot" id="bot" viewBox="-1 -1 26 23" role="img" aria-label="Robot face made of dots"></svg>
     <span class="badge"><span class="dot"></span>Under construction</span>
     <h1>AQM Online</h1>
     <div class="tagline">Ai Quality Management</div>
     <p>We're building something new.<br><strong>See you soon.</strong></p>
   </main>
   <footer>&copy; <span id="year">2026</span> AQM Online</footer>
-  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Robot face drawn on a 25x22 dot grid.
+    (function () {
+      const svg = document.getElementById("bot");
+      const NS = "http://www.w3.org/2000/svg";
+      // Signed distance to a rounded rectangle (head).
+      const head = (x, y) => {
+        const cx = 12, cy = 12.5, hw = 9, hh = 8, r = 4;
+        const qx = Math.abs(x - cx) - (hw - r), qy = Math.abs(y - cy) - (hh - r);
+        return Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - r;
+      };
+      const eyes = [[8.5, 11], [15.5, 11]];
+      const kind = (x, y) => {
+        if (x === 12 && y === 1) return "tip";
+        if (x === 12 && (y === 2 || y === 3)) return "edge";
+        if ((x === 1 || x === 23) && y >= 10 && y <= 14) return "edge";
+        const d = head(x, y);
+        if (d > 0.5) return null;
+        if (d > -0.5) return "edge";
+        for (const [ex, ey] of eyes) {
+          const e = Math.hypot(x - ex, y - ey);
+          if (e <= 2.3) return y === ey ? "eye mid" : "eye";
+        }
+        if (y === 16 && x >= 9 && x <= 15) return "mouth";
+        if (y === 15 && (x === 8 || x === 16)) return "mouth";
+        return "fill";
+      };
+      for (let y = 0; y <= 21; y++) {
+        for (let x = 0; x <= 24; x++) {
+          const k = kind(x, y);
+          if (!k) continue;
+          const c = document.createElementNS(NS, "circle");
+          c.setAttribute("cx", x);
+          c.setAttribute("cy", y);
+          c.setAttribute("r", k.startsWith("eye") || k === "tip" ? 0.42 : 0.32);
+          c.setAttribute("class", k);
+          if (k === "fill" || k === "edge") c.style.animationDelay = ((x + y) * 0.12).toFixed(2) + "s";
+          svg.appendChild(c);
+        }
+      }
+    })();
+  </script>
 </body>
 </html>
